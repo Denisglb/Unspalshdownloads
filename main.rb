@@ -27,9 +27,8 @@ class Unsplashed
 
 	def controller(query)
 		page_count(query)
-		@page_count.to_i.times do |i|
+		2.to_i.times do |i|
 			get_data(query, i)
-
 		end
 		download_images(query)
 	end
@@ -54,9 +53,10 @@ class Unsplashed
 	end
 
 	def download_images(query)
+		Dir.mkdir "./#{query}"
 		@collection.each_with_index { |down, index|
   		open("#{down}") {|f|
-   		File.open("Image #{index + 1} of #{query}.jpg","wb") do |file|
+   		File.open("./#{query}/Image #{index + 1} of #{query}.jpg","wb") do |file|
      	file.puts f.read end
      	}
      }
