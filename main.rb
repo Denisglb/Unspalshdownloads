@@ -3,12 +3,6 @@ require 'httparty'
 require 'open-uri'
 require 'json'
 
-# require 'json'
-
-# response = HTTParty.get('https://api.unsplash.com/search/photos?page=1&query=snorkle&client_id=4f64410d0f89accae239cbb1fa2adaf4d0e8fd995d4349fc3136ae9fb9a027f9')
-
-# puts response.body, response.code, response.message, response.headers.inspect
-
 class Unsplashed
 	include HTTParty
 	attr_reader :options
@@ -16,47 +10,67 @@ class Unsplashed
 	base_uri 'https://api.unsplash.com'
 		
 	def initialize
-    api_key  = "4f64410d0f89accae239cbb1fa2adaf4d0e8fd995d4349fc3136ae9fb9a027f9"
-    @options = {
-      query: {
-      	page: "1",
-        per_page: "30",
-        query: "dog",
-        client_id: api_key
-      		}
-    	}
-    @collection =[]
+    	@api_key  = "4f64410d0f89accae239cbb1fa2adaf4d0e8fd995d4349fc3136ae9fb9a027f9"
+    	@collection =[]
+    	@page_count = 0
   	end
 
-	def get_data
-		data = self.class.get('/search/photos', @options)
-		# p data.class
-		total_count = data.headers["x-total"]
-		body = JSON.parse(data.body)
-
-			download_url = body["results"]
-
-			download_url.each {|hash| 
-				@collection << hash["links"]["download"] 
-			}
+	def page_count(query)
+		data = self.class.get('/search/photos', options(query))
+		if (data.headers["x-total"].to_i / 30) == 0
+			@page_count =1
+		else
+			@page_count = (data.headers["x-total"].to_i / 30)
+			p @page_count
+		end
 	end
 
-	def download_image
-		get_data
+	def controller(query)
+		page_count(query)
+
+		4.to_i.times do |i|
+			get_data(query, i)
+
+		end
+		# @collection
+		download_images(query)
+	end
+
+	def get_data(query, page)
+		data = self.class.get('/search/photos', options(query))
+		body = JSON.parse(data.body)
+		download_url = body["results"]
+		download_url.each {|hash| 
+			@collection << hash["links"]["download"] 
+		}
+	end
+
+	def options(query, page=1)
+		{query: {
+	      	page: page.to_s,
+	        per_page: "30",
+	        query: query,
+	        client_id: @api_key
+      		}
+    	}
+	end
+
+	def download_images(query)
 		@collection.each_with_index { |down, index|
   		open("#{down}") {|f|
-   		File.open("#{index}new.jpg","wb") do |file|
+   		File.open("Image #{index + 1} of #{query}.jpg","wb") do |file|
      	file.puts f.read end
      	}
      }
 	end
-
 end
 
 unsplash = Unsplashed.new
 
-unsplash.download_image
+# unsplash.download_image("dog")
+unsplash.controller("cat")
 
 # p download_location
+
 
 
