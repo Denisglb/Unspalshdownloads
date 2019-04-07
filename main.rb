@@ -27,12 +27,10 @@ class Unsplashed
 
 	def controller(query)
 		page_count(query)
-
-		4.to_i.times do |i|
+		@page_count.to_i.times do |i|
 			get_data(query, i)
 
 		end
-		# @collection
 		download_images(query)
 	end
 
@@ -65,12 +63,10 @@ class Unsplashed
 	end
 end
 
+# EXAMPLE of how to run the script to get all photos of "cats" :) Just change the name of what images you want and it will download them to this file. 
 unsplash = Unsplashed.new
-
-# unsplash.download_image("dog")
 unsplash.controller("cat")
 
-# p download_location
 
 
 
