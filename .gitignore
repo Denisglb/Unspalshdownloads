@@ -1,4 +1,4 @@
 # Compiled source #
 ###################
 .DS_Store
-.config.yml
+config.yml
