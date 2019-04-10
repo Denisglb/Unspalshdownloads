@@ -45,6 +45,9 @@ class Unsplashed
 				@collection = []
 			rescue OpenURI::HTTPError => e
   				if e.message == '404 Not Found'
+  					@collection =[]
+  					p "oops, there was an error on page #{i}. skipping this to page #{i + 1} :)"
+  					i += 1
   					retry
   				else
   					raise e
@@ -55,8 +58,11 @@ class Unsplashed
 
 	def get_data(query, page)
 		data = self.class.get('/search/photos', options(query, page))
+		if (@count > 0 && @count%45 == 0)
+			p "It's time for me take a break, I am tired and I have a life too you know!"
+		end
 		@count +=1
-		p @count
+		p "Getting all photos from page " + @count.to_s
 		body = JSON.parse(data.body)
 		download_url = body["results"]
 		download_url.each {|hash| 
@@ -86,4 +92,4 @@ end
 
 # EXAMPLE of how to run the script to get all photos of "cats" :) Just change the name of what images you want and it will download them to this file. 
 unsplash = Unsplashed.new
-unsplash.controller("dog")
+unsplash.controller("skin")
