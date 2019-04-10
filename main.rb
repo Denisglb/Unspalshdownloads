@@ -16,6 +16,7 @@ class Unsplashed
     	@collection =[]
     	@page_count = 0
     	@total = 0
+    	@count = 0
   	end
 
 	def page_count(query)
@@ -38,14 +39,24 @@ class Unsplashed
 			if i%45 == 0
 				sleep(1.hours)
 			end
-			get_data(query, i)
-			download_images(query, i)
-			@collection = []
+			begin
+				get_data(query, i)
+				download_images(query, i)
+				@collection = []
+			rescue OpenURI::HTTPError => e
+  				if e.message == '404 Not Found'
+  					retry
+  				else
+  					raise e
+  				end
+			end
 		end
 	end
 
 	def get_data(query, page)
 		data = self.class.get('/search/photos', options(query, page))
+		@count +=1
+		p @count
 		body = JSON.parse(data.body)
 		download_url = body["results"]
 		download_url.each {|hash| 
@@ -66,7 +77,7 @@ class Unsplashed
 	def download_images(query, number)
 		@collection.each_with_index { |down, index|
   		open("#{down}") {|f|
-   		File.open("./#{query}/Image #{index+1} from page #{number} of #{query}.jpg","wb")  do |file|
+   		File.open("./#{query}/Page #{number} Image #{index+1} of #{query}.jpg","wb")  do |file|
      	file.puts f.read end
      	}
      }
@@ -75,8 +86,4 @@ end
 
 # EXAMPLE of how to run the script to get all photos of "cats" :) Just change the name of what images you want and it will download them to this file. 
 unsplash = Unsplashed.new
-unsplash.controller("cat")
-
-
-
-
+unsplash.controller("dog")
